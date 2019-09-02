@@ -15,12 +15,15 @@ use crate::error::{Error, ErrorCode, Result};
 use crate::read::EitherLifetime;
 #[cfg(feature = "unsealed_read_write")]
 pub use crate::read::EitherLifetime;
-use crate::read::Offset;
 #[cfg(feature = "std")]
-pub use crate::read::{IoRead, SliceRead};
+pub use crate::read::IoRead;
+use crate::read::Offset;
+#[cfg(any(feature = "std", feature = "alloc"))]
+pub use crate::read::SliceRead;
 pub use crate::read::{MutSliceRead, Read, SliceReadFixed};
-
 /// Decodes a value from CBOR data in a slice.
+///
+/// Only available with the `std` (default) or `alloc` feature.
 ///
 /// # Examples
 ///
@@ -41,7 +44,7 @@ pub use crate::read::{MutSliceRead, Read, SliceReadFixed};
 /// let value: &str = de::from_slice(&v[..]).unwrap();
 /// assert_eq!(value, "foobar");
 /// ```
-#[cfg(feature = "std")]
+#[cfg(any(feature = "std", feature = "alloc"))]
 pub fn from_slice<'a, T>(slice: &'a [u8]) -> Result<T>
 where
     T: de::Deserialize<'a>,
@@ -90,6 +93,8 @@ where
 }
 
 /// Decodes a value from CBOR data in a reader.
+///
+/// Only available with the `std` feature (default).
 ///
 /// # Examples
 ///
@@ -144,7 +149,7 @@ where
     }
 }
 
-#[cfg(feature = "std")]
+#[cfg(any(feature = "std", feature = "alloc"))]
 impl<'a> Deserializer<SliceRead<'a>> {
     /// Constructs a `Deserializer` which reads from a slice.
     ///

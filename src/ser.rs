@@ -1,5 +1,8 @@
 //! Serialize a Rust data structure to CBOR data.
 
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+
 #[cfg(feature = "std")]
 pub use crate::write::IoWrite;
 pub use crate::write::{SliceWrite, Write};
@@ -12,13 +15,15 @@ use serde::ser::{self, Serialize};
 use std::io;
 
 /// Serializes a value to a vector.
-#[cfg(feature = "std")]
+///
+/// Only available with the `std` (default) or `alloc` feature.
+#[cfg(any(feature = "std", feature = "alloc"))]
 pub fn to_vec<T>(value: &T) -> Result<Vec<u8>>
 where
     T: ser::Serialize,
 {
     let mut vec = Vec::new();
-    to_writer(&mut vec, value)?;
+    value.serialize(&mut Serializer::new(&mut vec))?;
     Ok(vec)
 }
 
@@ -34,6 +39,8 @@ where
 }
 
 /// Serializes a value to a writer.
+///
+/// Only available with the `std` feature (default).
 #[cfg(feature = "std")]
 pub fn to_writer<W, T>(writer: W, value: &T) -> Result<()>
 where
